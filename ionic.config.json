@@ -1,0 +1,7 @@
+{
+  "name": "pt-cordova-todo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
