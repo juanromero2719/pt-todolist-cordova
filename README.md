@@ -1,3 +1,122 @@
+
+# Respuestas a las preguntas de la entrevista
+
+## ¿Cuáles fueron los principales desafíos que enfrentaste al implementar las nuevas funcionalidades?
+
+Durante la implementación del proyecto, enfrenté varios desafíos técnicos significativos:
+
+### 1. **Configuración e Integración de Firebase**
+- **Desafío:** Configurar correctamente Firebase Remote Config con Angular, especialmente la inicialización del servicio `RemoteConfig` que requería una instancia válida de Firebase App.
+- **Solución:** Implementé la inicialización correcta usando `getApp()` para obtener la instancia de Firebase App antes de crear Remote Config, asegurando que el servicio estuviera correctamente asociado al proyecto Firebase.
+
+### 2. **Manejo de Errores en Remote Config**
+- **Desafío:** Implementar un sistema robusto de feature flags que funcionara incluso cuando Firebase Remote Config no estuviera disponible o fallara la conexión.
+- **Solución:** Implementé valores por defecto en `FirebaseRemoteConfigFlags` y un manejo de errores con `try-catch` que permite que la aplicación funcione con valores locales cuando hay problemas de conectividad.
+
+### 3. **Build de Android en Docker**
+- **Desafío:** Configurar un entorno Docker completo para compilar APKs de Android, incluyendo Android SDK, Build Tools, Gradle y todas las dependencias necesarias.
+- **Solución:** Creé `Dockerfile.android` con instalación completa de Android SDK, aceptación automática de licencias, instalación de Gradle 8.5, y configuración correcta de variables de entorno (`ANDROID_HOME`, `GRADLE_HOME`).452
+
+## ¿Qué técnicas de optimización de rendimiento aplicaste y por qué?
+
+Implementé múltiples técnicas de optimización basadas en las mejores prácticas de Angular y RxJS:
+
+### 1. **Change Detection Strategy OnPush**
+```typescript
+changeDetection: ChangeDetectionStrategy.OnPush
+```
+- **Por qué:** Reduce drásticamente las verificaciones de cambios, mejorando el rendimiento especialmente en listas grandes. Angular solo verifica cambios cuando:
+  - Cambian las referencias de `@Input()`
+  - Se disparan eventos del componente
+  - Se marca manualmente con `ChangeDetectorRef`
+
+
+### 2. **Optimización de Renderizado de Listas**
+```typescript
+trackByTaskId(index: number, task: any): string {
+    return task.id;
+}
+```
+- **Por qué:** Permite a Angular identificar elementos únicos en listas, evitando recrear elementos del DOM cuando solo cambian propiedades, mejorando significativamente el rendimiento en listas grandes.
+
+### 3. **Lazy Loading de Componentes**
+- **Por qué:** Reduce el tamaño del bundle inicial, cargando componentes solo cuando son necesarios, mejorando el tiempo de carga inicial de la aplicación.
+
+### Resultados Esperados:
+- ⚡ **Inicio más rápido:** Lazy loading reduce el bundle inicial
+- 🚀 **Menos recálculos:** OnPush y distinctUntilChanged reducen verificaciones innecesarias
+- 💾 **Mejor uso de memoria:** shareReplay y take(1) optimizan el uso de recursos
+- 📱 **Renderizado optimizado:** trackBy mejora el rendimiento en listas grandes
+
+## ¿Cómo aseguraste la calidad y mantenibilidad del código?
+
+Implementé varias prácticas y patrones arquitectónicos para garantizar código de calidad y fácil mantenimiento:
+
+### 1. **Arquitectura Limpia (Clean Architecture)**
+El proyecto sigue una arquitectura en capas bien definida:
+
+```
+src/app/core/
+├── domain/              # Modelos de dominio puros (Task, TaskStatus)
+├── application/         # Use cases y lógica de negocio
+├── infraestructure/     # Implementaciones concretas (repositorios, servicios externos)
+└── services/           # Servicios compartidos
+```
+
+- **Separación de responsabilidades:** Cada capa tiene una responsabilidad clara
+- **Independencia de frameworks:** La lógica de negocio no depende de Angular o Firebase
+- **Testabilidad:** Cada capa puede ser testeada independientemente
+
+### 2. **Patrón de Use Cases**
+```typescript
+export class AddTaskUseCase {
+    constructor(private taskRepository: TaskRepository) {}
+    execute(title: string, category: string): Observable<Task[]> {
+        // Lógica de negocio encapsulada
+    }
+}
+```
+- **Ventajas:** Encapsula la lógica de negocio, facilita testing y reutilización
+- **Mantenibilidad:** Cambios en la lógica de negocio se centralizan en un solo lugar
+
+### 3. **Inversión de Dependencias (Dependency Injection)**
+```typescript
+@Injectable({ providedIn: 'root'})
+export class LocalTaskRepository implements TaskRepository {
+    // Implementación concreta
+}
+```
+- **Interfaces:** Uso de interfaces (`TaskRepository`, `FeatureFlags`) para contratos claros
+- **Inyección de dependencias:** Angular maneja la creación e inyección de dependencias
+- **Flexibilidad:** Fácil intercambiar implementaciones (ej: cambiar de localStorage a Firebase)
+
+### 4. **TypeScript para Type Safety**
+- **Tipado fuerte:** Todos los modelos, interfaces y funciones están tipados
+- **Detección temprana de errores:** El compilador detecta errores antes de ejecución
+- **Autocompletado:** Mejor experiencia de desarrollo y menos errores
+
+- **Estado reactivo:** El estado se actualiza reactivamente, facilitando el debugging
+
+### 5. **Configuración y Entornos**
+- **Environment files:** Separación clara entre desarrollo y producción
+- **Configuración centralizada:** Firebase y otras configuraciones en un solo lugar
+- **Fácil despliegue:** Cambios de entorno sin modificar código
+
+### 6. **Documentación y Estructura Clara**
+- **README detallado:** Documentación completa del proyecto
+- **Nombres descriptivos:** Variables, funciones y clases con nombres claros
+- **Comentarios cuando es necesario:** Comentarios en código complejo o no obvio
+
+### 7. **Testing Preparado**
+- **Karma y Jasmine:** Framework de testing configurado
+- **Arquitectura testeable:** Separación de lógica facilita unit testing
+- **Mocks facilitados:** Interfaces permiten fácil creación de mocks
+
+### 8. **Docker para Consistencia**
+- **Entornos reproducibles:** Docker asegura que todos trabajen en el mismo entorno
+- **Builds consistentes:** El build de Android funciona igual en cualquier máquina
+- **Documentación viva:** Dockerfiles documentan las dependencias del proyecto
+
 # Nota importa
 
 No se logro probar la parte de iOS debido a que no poseo una macOs para realizar la prueba.
