@@ -1,3 +1,7 @@
+# Nota importa
+
+No se logro probar la parte de iOS debido a que no poseo una macOs para realizar la prueba.
+
 # 📱 PT Cordova Todo
 
 Aplicación móvil To-Do List desarrollada con Ionic, Angular y Cordova, con integración de Firebase Remote Config para feature flags y optimizaciones de rendimiento.
