@@ -1,0 +1,51 @@
+# Dockerfile para build de Android
+
+FROM node:20
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl \
+    wget \
+    unzip \
+    openjdk-17-jdk \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+ENV PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/latest/bin
+
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip && \
+    unzip -q /tmp/cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools && \
+    mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest && \
+    rm /tmp/cmdline-tools.zip
+
+RUN yes | sdkmanager --licenses || true && \
+    sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+# Instalar Gradle
+ENV GRADLE_VERSION=8.5
+ENV GRADLE_HOME=/opt/gradle
+ENV PATH=${PATH}:${GRADLE_HOME}/bin
+
+RUN wget -q https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -O /tmp/gradle.zip && \
+    unzip -q /tmp/gradle.zip -d /opt && \
+    mv /opt/gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
+    rm /tmp/gradle.zip && \
+    chmod +x ${GRADLE_HOME}/bin/gradle
+
+RUN npm install -g @ionic/cli cordova
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+CMD ["ionic", "cordova", "build", "android", "--prod"]
+

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Servicio de desarrollo
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: pt-cordova-todo-dev
+    ports:
+      - "4200:4200"
+      - "8100:8100"
+      - "35729:35729"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm start
+    stdin_open: true
+    tty: true
+
+  # Servicio de producción
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pt-cordova-todo-prod
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  # Servicio para build de Android
+  android-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.android
+    container_name: pt-cordova-todo-android-builder
+    volumes:
+      - .:/app
+      - android-builds:/app/platforms/android/app/build/outputs/apk
+    environment:
+      - ANDROID_HOME=/opt/android-sdk
+      - ANDROID_SDK_ROOT=/opt/android-sdk
+      - GRADLE_HOME=/opt/gradle
+    command: ionic cordova build android --prod
+    profiles:
+      - build
+
+volumes:
+  android-builds:
+

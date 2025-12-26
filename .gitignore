@@ -68,3 +68,16 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Keystores and signing files (NO SUBIR AL REPOSITORIO)
+*.keystore
+*.jks
+keystore.properties
+release-signing.properties
+debug-signing.properties
+*.p12
+*.mobileprovision
+*.certSigningRequest
+
+# Docker
+.dockerignore
